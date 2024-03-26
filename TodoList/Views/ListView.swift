@@ -8,18 +8,29 @@
 import SwiftUI
 
 struct ListView: View {
-    
-    @State var items: [String] = [
-        "hello", "hi", "hoho"
-    ]
+    @EnvironmentObject var vm: ListViewModel
     
     var body: some View {
-        List {
-            ForEach(items, id: \.self) { item in
-                Text(item)
+        
+        ZStack {
+            if vm.items.isEmpty {
+               NoItemsView()
+            } else {
+                List {
+                    ForEach(vm.items) { item in
+                        ListRowView(item: item)
+                            .onTapGesture {
+                                withAnimation(.spring()) {
+                                    vm.updateItem(item: item)
+                                }
+                            }
+                    }
+                    .onDelete(perform: vm.deleteItem)
+                    .onMove(perform: vm.moveItem)
+                }
+                .listStyle(.plain)
             }
         }
-        .listStyle(.plain)
         .navigationTitle("메모")
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
@@ -27,12 +38,13 @@ struct ListView: View {
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationLink {
-                    Text("Add view")
+                    AddView()
                 } label: {
                     Image(systemName: "plus")
                 }
             }
         }
+            
     }
     
 }
@@ -41,4 +53,5 @@ struct ListView: View {
     NavigationView {
         ListView()
     }
+    .environmentObject(ListViewModel())
 }
